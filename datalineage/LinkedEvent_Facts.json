@@ -1,0 +1,146 @@
+{
+	"name": "LinkedEvent_Facts",
+	"properties": {
+		"activities": [
+			{
+				"name": "LinkedEvent_Facts",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set startDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set endDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Orchestrator",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pipelineName": "LinkedEvent_Facts",
+						"activityName": "LinkedEvent_Facts_Hourly",
+						"recurrence": "HourlyTracker",
+						"lookBehind": 72,
+						"scheduleOrder": "OldestFirst",
+						"endDateOffset": 3,
+						"startDate": {
+							"value": "@variables('varStartDate')",
+							"type": "Expression"
+						},
+						"endDate": {
+							"value": "@variables('varEndDate')",
+							"type": "Expression"
+						},
+						"scriptPath": "scripts/scripts/Source/DataPlatform.Scope/Facts/LinkedEvent",
+						"scriptFile": "LinkedEvent.script",
+						"scriptParameters": {
+							"value": "@concat('{\n    \"inputEnv\": \"\\\"', pipeline().globalParameters.Env, '\\\"\",\n    \"outputEnv\": \"\\\"', pipeline().globalParameters.Env, '\\\"\",\n    \"partitions\": \"\\\"50\\\"\"\n}')",
+							"type": "Expression"
+						},
+						"maxNodes": {
+							"value": "@if(equals(pipeline().parameters.maxNodes, null), '58', pipeline().parameters.maxNodes)",
+							"type": "Expression"
+						},
+						"jobOwner": "Store.Prod.Jobs",
+						"maxJobs": "2",
+						"orchestrator": {
+							"value": "@if(equals(pipeline().parameters.orchestrator, null), 'asimov-partner-ptp', pipeline().parameters.orchestrator)",
+							"type": "Expression"
+						},
+						"bypassTracker": {
+							"value": "@pipeline().parameters.bypassTracker",
+							"type": "Expression"
+						},
+						"dependencyCheckTryCount": "@if(equals(pipeline().parameters.dependencyCheckTryCount, null), null, int(pipeline().parameters.dependencyCheckTryCount))",
+						"dependencyCheckRetryWaitTime": "@if(equals(pipeline().parameters.dependencyCheckRetryWaitTime, null), null, int(pipeline().parameters.dependencyCheckRetryWaitTime))"
+					}
+				}
+			},
+			{
+				"name": "Set startDate",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varStartDate",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.startDate, null), null, formatDateTime(pipeline().parameters.startDate))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set endDate",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varEndDate",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.endDate, null), formatDateTime(utcNow()), formatDateTime(pipeline().parameters.endDate))",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"startDate": {
+				"type": "string"
+			},
+			"endDate": {
+				"type": "string"
+			},
+			"maxNodes": {
+				"type": "string",
+				"defaultValue": "100"
+			},
+			"orchestrator": {
+				"type": "string",
+				"defaultValue": "asimov-partner-ptp with DC"
+			},
+			"bypassTracker": {
+				"type": "Bool",
+				"defaultValue": false
+			},
+			"dependencyCheckTryCount": {
+				"type": "string"
+			},
+			"dependencyCheckRetryWaitTime": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"varStartDate": {
+				"type": "String"
+			},
+			"varEndDate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Facts"
+		},
+		"annotations": []
+	}
+}
